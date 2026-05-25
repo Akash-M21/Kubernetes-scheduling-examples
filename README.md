@@ -1,6 +1,8 @@
-# Kubernetes Scheduling & Affinity examples
+# Kubernetes Scheduling Examples
 
-A hands-on Kubernetes project demonstrating:
+A hands-on Kubernetes project demonstrating how Pods are scheduled across nodes using different Kubernetes scheduling mechanisms.
+
+This repository provides practical examples for understanding:
 
 - Node Selector
 - Node Affinity
@@ -8,26 +10,38 @@ A hands-on Kubernetes project demonstrating:
 - Pod Affinity
 - Pod Anti-Affinity
 
-This project helps understand how Kubernetes schedules Pods across nodes using labels and affinity rules.
+These concepts are important for:
+- workload placement
+- high availability
+- resource optimization
+- GPU scheduling
+- low-latency applications
+- production-grade Kubernetes deployments
+
+The project is designed for:
+- Kubernetes beginners
+- DevOps engineers
+- CKA preparation
+- hands-on Kubernetes practice
 
 ---
 
 # 📚 Topics Covered
 
-| Feature | Purpose |
+| Feature | Description |
 |---|---|
-| nodeSelector | Schedule Pods on specific labeled nodes |
-| nodeAffinity | Advanced node-based scheduling |
-| podAffinity | Place Pods together |
-| podAntiAffinity | Separate Pods across nodes |
-| topologyKey | Defines scheduling topology boundary |
+| nodeSelector | Simplest way to schedule Pods onto labeled nodes |
+| nodeAffinity | Advanced node-based scheduling using flexible matching rules |
+| podAffinity | Places Pods together on the same node or topology |
+| podAntiAffinity | Spreads Pods across nodes for high availability |
+| topologyKey | Defines the topology boundary used for scheduling |
 
 ---
 
 # 🏗 Project Structure
 
 ```text
-kubernetes-scheduling-lab/
+Kubernetes-scheduling-examples/
 │
 ├── README.md
 │
@@ -40,24 +54,63 @@ kubernetes-scheduling-lab/
 │   ├── pod-anti-affinity.yaml
 │   └── database-pod.yaml
 │
-├── commands/
+└── commands/
     ├── apply.sh
     └── cleanup.sh
 ```
 
 ---
 
-# 🚀 Pre-requisites
+# 🚀 Prerequisites
 
-- Kubernetes Cluster
-- kubectl installed
+Before starting, ensure you have:
+
+- A Kubernetes cluster
+- kubectl installed and configured
 - Minimum 2 worker nodes recommended
+- Basic understanding of Pods and Deployments
 
-Verify cluster:
+Verify your cluster:
 
 ```bash
 kubectl get nodes
 ```
+
+---
+
+# ⚙️ Setup
+
+## Clone Repository
+
+```bash
+git clone https://github.com/<your-username>/Kubernetes-scheduling-examples.git
+```
+
+## Navigate to Project
+
+```bash
+cd Kubernetes-scheduling-examples
+```
+
+---
+
+# 🧠 Understanding Kubernetes Scheduling
+
+The Kubernetes Scheduler decides which node should run a Pod.
+
+By default:
+- Kubernetes places Pods on any available node
+- the scheduler tries to balance workloads automatically
+
+However, in production environments we often need more control.
+
+Examples:
+- Run GPU workloads only on GPU nodes
+- Keep application Pods close to database Pods
+- Spread replicas across nodes for high availability
+- Prevent workloads from running on expensive nodes
+
+Kubernetes provides several scheduling mechanisms to solve these problems.
 
 ---
 
@@ -71,15 +124,28 @@ manifests/base-deployment.yaml
 
 ## Purpose
 
-Basic Deployment without any scheduling rules.
+This is a basic Deployment without any scheduling constraints.
 
-Pods can run on any available node.
+The Kubernetes scheduler can place Pods on any available node in the cluster.
+
+This example helps understand the default Kubernetes scheduling behavior.
 
 ## Apply
 
 ```bash
 kubectl apply -f manifests/base-deployment.yaml
 ```
+
+## Use Cases
+
+- Default workloads
+- Stateless applications
+- Simple Kubernetes deployments
+
+## Limitations
+
+- No control over Pod placement
+- Scheduler decides placement automatically
 
 ---
 
@@ -93,13 +159,26 @@ manifests/node-selector.yaml
 
 ## Purpose
 
-Schedules Pods only on nodes having:
+`nodeSelector` is the simplest scheduling mechanism in Kubernetes.
+
+It schedules Pods only onto nodes that contain specific labels.
+
+In this example:
+
+```yaml
+nodeSelector:
+  gpu: "true"
+```
+
+Pods are allowed to run only on nodes labeled:
 
 ```text
 gpu=true
 ```
 
-## Add Label
+---
+
+## Add Label to Node
 
 ```bash
 kubectl label nodes node1 gpu=true
@@ -119,28 +198,24 @@ kubectl apply -f manifests/node-selector.yaml
 
 ---
 
-# ✅ Advantages
+## ✅ Advantages
 
 - Very simple
-- Easy to understand
+- Easy to configure
+- Beginner friendly
 - Good for small clusters
 
-# ❌ Limitations
+## ❌ Limitations
 
-- Limited flexibility
-- Supports exact matches only
-- Cannot use complex conditions
+- Exact matching only
+- Cannot use advanced conditions
+- Not flexible for complex environments
 
-# ✅ Use When
+## ✅ Use Cases
 
-- Small environments
-- Simple node targeting
+- GPU workloads
+- Dedicated hardware nodes
 - Learning Kubernetes scheduling
-
-# ❌ Avoid When
-
-- Large production clusters
-- Complex scheduling requirements
 
 ---
 
@@ -154,50 +229,61 @@ manifests/node-affinity.yaml
 
 ## Purpose
 
-Advanced node scheduling using affinity rules.
+Node Affinity is a more advanced version of nodeSelector.
 
-Pods run only on nodes labeled:
+It allows flexible scheduling rules using operators.
 
-```text
-gpu=true
-```
-
-using:
+In this example:
 
 ```yaml
 operator: In
 ```
 
+Pods are scheduled only on nodes labeled:
+
+```text
+gpu=true
+```
+
 ---
 
-# ✅ Advantages
+## Supported Operators
 
-- Flexible scheduling
-- Supports operators:
-  - In
-  - NotIn
-  - Exists
-  - DoesNotExist
-  - Gt
-  - Lt
+| Operator | Description |
+|---|---|
+| In | Label value must match |
+| NotIn | Label value must not match |
+| Exists | Label key must exist |
+| DoesNotExist | Label key must not exist |
+| Gt | Greater than |
+| Lt | Less than |
 
+---
+
+## Apply
+
+```bash
+kubectl apply -f manifests/node-affinity.yaml
+```
+
+---
+
+## ✅ Advantages
+
+- More flexible than nodeSelector
 - Production-ready
+- Supports complex scheduling logic
 
-# ❌ Limitations
+## ❌ Limitations
 
-- More complex than nodeSelector
+- More difficult to understand
 - Harder to debug
 
-# ✅ Use When
+## ✅ Use Cases
 
-- Production environments
-- Advanced scheduling policies
+- Production scheduling
 - Multi-node clusters
-
-# ❌ Avoid When
-
-- Simple learning demos
-- Tiny clusters
+- Specialized hardware scheduling
 
 ---
 
@@ -211,11 +297,7 @@ manifests/node-anti-affinity.yaml
 
 ## Purpose
 
-Avoid scheduling Pods on nodes labeled:
-
-```text
-gpu=true
-```
+This example avoids scheduling Pods on GPU nodes.
 
 Implemented using:
 
@@ -223,11 +305,15 @@ Implemented using:
 operator: NotIn
 ```
 
+This tells Kubernetes:
+
+> Do NOT place Pods on nodes labeled gpu=true
+
 ---
 
-# ⚠ Important Note
+## Important Note
 
-Kubernetes does NOT have a dedicated:
+Kubernetes does not provide a dedicated:
 
 ```yaml
 nodeAntiAffinity:
@@ -235,7 +321,7 @@ nodeAntiAffinity:
 
 field.
 
-Anti-affinity behavior is achieved using:
+Instead, anti-affinity behavior is implemented using:
 
 ```yaml
 nodeAffinity:
@@ -249,19 +335,29 @@ operator: NotIn
 
 ---
 
-# ✅ Advantages
+## Apply
 
-- Avoid expensive/specialized nodes
-- Better resource separation
+```bash
+kubectl apply -f manifests/node-anti-affinity.yaml
+```
 
-# ❌ Limitations
+---
 
-- Requires careful label management
+## ✅ Advantages
 
-# ✅ Use When
+- Prevents workloads from using specialized nodes
+- Better workload isolation
+- Helps optimize expensive resources
 
-- Keeping workloads away from GPU nodes
-- Avoiding noisy neighbors
+## ❌ Limitations
+
+- Requires proper labeling strategy
+
+## ✅ Use Cases
+
+- Avoid GPU nodes
+- Keep lightweight workloads on normal nodes
+- Reserve hardware for critical applications
 
 ---
 
@@ -275,59 +371,82 @@ manifests/pod-affinity.yaml
 
 ## Purpose
 
-Schedules Pods on the SAME node as Pods labeled:
+Pod Affinity schedules Pods close to other Pods.
 
-```text
+In this example:
+
+```yaml
 app=database
 ```
 
-using:
+The scheduler places Pods on the SAME node where database Pods are already running.
+
+This is controlled using:
 
 ```yaml
 topologyKey: kubernetes.io/hostname
 ```
 
+which means:
+- apply the rule at node level
+
 ---
 
-# ⚠ Important
+## Why Pod Affinity is Useful
 
-You MUST create the database Pod first.
+Keeping related applications together can:
+- reduce network latency
+- improve communication speed
+- improve application performance
 
-Apply:
+Example:
+- application + database
+- backend + cache
+
+---
+
+## Important
+
+Create the database Pod first:
 
 ```bash
 kubectl apply -f manifests/database-pod.yaml
 ```
 
-Otherwise Pods remain:
+Otherwise affinity Pods remain in:
 
 ```text
 Pending
 ```
 
+state because Kubernetes cannot find matching Pods.
+
 ---
 
-# ✅ Advantages
+## Apply
 
-- Reduces network latency
-- Improves inter-service communication
-- Useful for tightly coupled services
+```bash
+kubectl apply -f manifests/pod-affinity.yaml
+```
 
-# ❌ Limitations
+---
 
-- Can reduce cluster flexibility
-- Risk of node congestion
+## ✅ Advantages
 
-# ✅ Use When
+- Faster communication
+- Better local access
+- Reduced network overhead
 
-- App + cache
-- App + database
-- High-speed local communication needed
+## ❌ Limitations
 
-# ❌ Avoid When
+- Can overload nodes
+- Reduces scheduling flexibility
 
-- High availability is more important
-- Large distributed systems
+## ✅ Use Cases
+
+- App + Database
+- App + Redis Cache
+- Closely connected services
 
 ---
 
@@ -341,92 +460,56 @@ manifests/pod-anti-affinity.yaml
 
 ## Purpose
 
-Prevents Pods from running on the same node.
+Pod Anti-Affinity spreads Pods across nodes.
 
-Useful for high availability.
+It prevents Pods from running together on the same node.
+
+This improves:
+- fault tolerance
+- high availability
+- resilience
+
+If one node fails:
+- not all replicas are affected
 
 ---
 
-# ✅ Advantages
+## Apply
 
-- Better fault tolerance
-- High availability
-- Spreads replicas across nodes
+```bash
+kubectl apply -f manifests/pod-anti-affinity.yaml
+```
 
-# ❌ Limitations
+---
 
-- Requires enough worker nodes
-- Scheduling can fail in small clusters
+## ✅ Advantages
 
-# ✅ Use When
-
-- Critical production workloads
+- Better high availability
+- Improved reliability
 - Replica spreading
-- HA systems
 
-# ❌ Avoid When
+## ❌ Limitations
 
-- Single-node clusters
-- Resource-constrained environments
+- Requires multiple worker nodes
+- Pods may remain Pending in small clusters
+
+## ✅ Use Cases
+
+- Production applications
+- HA deployments
+- Critical workloads
 
 ---
 
-# 🔍 Verify Pod Placement
+# 🔍 Verification Commands
+
+## Check Pod Placement
 
 ```bash
 kubectl get pods -o wide
 ```
 
-Example:
-
-| POD | NODE |
-|---|---|
-| database-pod | node1 |
-| gpu-app-pod-affinity | node1 |
-
----
-
-# 🧠 Important Kubernetes Concepts
-
-## requiredDuringSchedulingIgnoredDuringExecution
-
-Meaning:
-
-| Part | Explanation |
-|---|---|
-| requiredDuringScheduling | Rule MUST match before scheduling |
-| IgnoredDuringExecution | Running Pods are NOT evicted if labels later change |
-
----
-
-# 📌 topologyKey Explained
-
-```yaml
-topologyKey: kubernetes.io/hostname
-```
-
-Means:
-- apply rule at node level
-
-Other examples:
-
-| Topology Key | Meaning |
-|---|---|
-| kubernetes.io/hostname | Node |
-| topology.kubernetes.io/zone | Availability Zone |
-| topology.kubernetes.io/region | Region |
-
----
-
-# 🧪 Useful Commands
-
-## Check Nodes
-
-```bash
-kubectl get nodes
-```
-
-## Check Labels
+## Check Node Labels
 
 ```bash
 kubectl get nodes --show-labels
@@ -438,7 +521,110 @@ kubectl get nodes --show-labels
 kubectl describe pod <pod-name>
 ```
 
-## View Scheduling Events
+---
+
+# 📌 Example Output
+
+```bash
+kubectl get pods -o wide
+```
+
+| POD | NODE |
+|---|---|
+| database-pod | node1 |
+| gpu-app-pod-affinity | node1 |
+
+This confirms Pod Affinity is working correctly.
+
+---
+
+# 🧠 Important Kubernetes Concepts
+
+## requiredDuringSchedulingIgnoredDuringExecution
+
+| Term | Meaning |
+|---|---|
+| requiredDuringScheduling | Rule MUST match before scheduling |
+| IgnoredDuringExecution | Running Pods are NOT evicted if labels later change |
+
+Example:
+- Pod scheduled on gpu=true node
+- later label removed
+- Pod continues running
+
+---
+
+# 🌍 topologyKey Explained
+
+```yaml
+topologyKey: kubernetes.io/hostname
+```
+
+This defines the scheduling boundary.
+
+Other examples:
+
+| topologyKey | Meaning |
+|---|---|
+| kubernetes.io/hostname | Node |
+| topology.kubernetes.io/zone | Availability Zone |
+| topology.kubernetes.io/region | Region |
+
+---
+
+# 🛠 Apply All Resources
+
+## Using Script
+
+```bash
+chmod +x commands/apply.sh
+./commands/apply.sh
+```
+
+---
+
+# 🧹 Cleanup Resources
+
+```bash
+chmod +x commands/cleanup.sh
+./commands/cleanup.sh
+```
+
+---
+
+# 🚨 Troubleshooting
+
+## Pods Stuck in Pending
+
+### Cause
+
+Affinity rule not satisfied.
+
+### Fix
+
+```bash
+kubectl apply -f manifests/database-pod.yaml
+```
+
+---
+
+## Node Label Missing
+
+### Verify
+
+```bash
+kubectl get nodes --show-labels
+```
+
+### Add Label
+
+```bash
+kubectl label nodes node1 gpu=true
+```
+
+---
+
+## Check Scheduler Events
 
 ```bash
 kubectl describe pod <pod-name>
@@ -446,45 +632,38 @@ kubectl describe pod <pod-name>
 
 ---
 
-# 🟢 Cleanup
-
-```bash
-kubectl delete -f manifests/
-```
-
----
-
-# 📷 Suggested Screenshots
-
-Add screenshots for:
-
-- Node labels
-- Pod placement
-- Pending Pods
-- Pod affinity working
-- Anti-affinity spreading
-```
-
----
-
 # 🎯 Learning Outcomes
 
-After completing this lab, you will understand:
+After completing this project, you will understand:
 
 - Kubernetes scheduler basics
-- Node selection
-- Affinity rules
-- Anti-affinity behavior
-- Topology-based scheduling
-- High availability scheduling patterns
+- Node labels and selectors
+- Affinity and anti-affinity
+- Pod placement strategies
+- High availability scheduling
+- topologyKey behavior
+- Real-world Kubernetes scheduling scenarios
+
+---
+
+# 🔥 Future Improvements
+
+You can extend this project with:
+
+- Taints & Tolerations
+- Topology Spread Constraints
+- StatefulSets
+- Resource Limits
+- GPU Scheduling
+- Multi-zone Scheduling
 
 ---
 
 # 📖 References
 
 - Kubernetes Official Documentation
-- Kubernetes Scheduling Concepts
-- Kubernetes Affinity & Anti-Affinity
+- Kubernetes Scheduling Documentation
+- Kubernetes Affinity Documentation
 
 ---
 
