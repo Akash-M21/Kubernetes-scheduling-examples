@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: gpu-app-base
+  namespace: default
+
+spec:
+  replicas: 2
+
+  selector:
+    matchLabels:
+      app: gpu-app-base
+
+  template:
+    metadata:
+      labels:
+        app: gpu-app-base
+
+    spec:
+      containers:
+      - name: gpu-container
+        image: nginx:1.28
+
+        ports:
+        - containerPort: 80
