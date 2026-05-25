@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: gpu-app-pod-affinity
+  namespace: default
+
+spec:
+  replicas: 2
+
+  selector:
+    matchLabels:
+      app: gpu-app-pod-affinity
+
+  template:
+    metadata:
+      labels:
+        app: gpu-app-pod-affinity
+
+    spec:
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - database
+
+            topologyKey: kubernetes.io/hostname
+
+      containers:
+      - name: gpu-container
+        image: nginx:1.28
+
+        ports:
+        - containerPort: 80
