@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: gpu-app-pod-anti-affinity
+  namespace: default
+
+spec:
+  replicas: 2
+
+  selector:
+    matchLabels:
+      app: gpu-app-pod-anti-affinity
+
+  template:
+    metadata:
+      labels:
+        app: gpu-app-pod-anti-affinity
+
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - gpu-app-pod-anti-affinity
+
+            topologyKey: kubernetes.io/hostname
+
+      containers:
+      - name: gpu-container
+        image: nginx:1.28
+
+        ports:
+        - containerPort: 80
