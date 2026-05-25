@@ -61,7 +61,7 @@ Kubernetes-scheduling-examples/
 
 ---
 
-# 🚀 Prerequisites
+# 🚀 Pre-requisites
 
 Before starting, ensure you have:
 
@@ -83,7 +83,7 @@ kubectl get nodes
 ## Clone Repository
 
 ```bash
-git clone https://github.com/<your-username>/Kubernetes-scheduling-examples.git
+git clone https://github.com/Akash-M21/Kubernetes-scheduling-examples.git
 ```
 
 ## Navigate to Project
