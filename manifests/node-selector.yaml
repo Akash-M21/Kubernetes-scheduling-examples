@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: gpu-app-node-selector
+  namespace: default
+
+spec:
+  replicas: 2
+
+  selector:
+    matchLabels:
+      app: gpu-app-node-selector
+
+  template:
+    metadata:
+      labels:
+        app: gpu-app-node-selector
+
+    spec:
+      nodeSelector:
+        gpu: "true"
