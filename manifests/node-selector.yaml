@@ -22,5 +22,5 @@ spec:
         gpu: "true"
 
       containers:
-      - name: cuda-container
-        image: nvcr.io/nvidia/k8s/cuda-sample:vectoradd-cuda10.2
+      - name: gpu-nginx
+        image: nginx:1.28
